@@ -14,5 +14,5 @@ LIC_FILES_CHKSUM=""
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 SRC_URI += "file://uscope_kernel.cfg"
 
-
+IMAGE_CLASSES += " xilinx-bootbin"
 
