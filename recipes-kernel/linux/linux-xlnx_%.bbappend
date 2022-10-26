@@ -1,4 +1,4 @@
 
-FILESEXTRAPATHS_prepend := "${THISDIR}/cfg:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/cfg:"
  
-SRC_URI_append = " file://kernel.cfg"
+SRC_URI:append = " file://kernel.cfg"

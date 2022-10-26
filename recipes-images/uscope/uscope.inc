@@ -1,7 +1,6 @@
 inherit core-image
-require xsct-tarball-esdk.inc
 
-IMAGE_AUTOLOGIN ?= "1"
+IMAGE_AUTOLOGIN ?= "0"
 
 AUTOLOGIN = "${@ 'autologin' if d.getVar('IMAGE_AUTOLOGIN') == '1' else '' }"
 
@@ -13,14 +12,20 @@ COMMON_FEATURES = " \
     "
 IMAGE_FEATURES += "${COMMON_FEATURES}"
 
+SYSTEMD_DEFAULT_TARGET = "${@bb.utils.contains_any('IMAGE_INSTALL', \
+    [ 'packagegroup-petalinux-x11', 'packagegroup-petalinux-weston' ], \
+    'graphical.target', 'multi-user.target', d)}"
+
 COMMON_INSTALL = " \
-    openssh-sftp-server \
     tcf-agent \
     mtd-utils \
     bridge-utils \
     can-utils \
     pciutils \
     kernel-modules \
+    nfs-utils \
+    nfs-utils-client \
+    linux-xlnx-udev-rules \
     "
 
 IMAGE_INSTALL = " \
@@ -29,11 +34,20 @@ IMAGE_INSTALL = " \
     ${CORE_IMAGE_EXTRA_INSTALL} \
     "
 
-COMMON_INSTALL_append_zynqmp = " hellopm haveged"
-COMMON_INSTALL_append_zynq = " haveged"
-COMMON_INSTALL_append_versal = " haveged"
+#Create devfs entries for initramfs(bundle) image
+USE_DEVFS = "${@'0' if d.getVar('INITRAMFS_IMAGE_BUNDLE') == '1' else '1'}"
+IMAGE_DEVICE_TABLES:append = " files/plnx_dev_table.txt"
 
-CORE_IMAGE_EXTRA_INSTALL_append_ultra96 = " packagegroup-base-extended"
+# If meta-xilinx-tools is available, require libdfx
+LIBDFX_RECIPE = "${@'libdfx' if 'xilinx-tools' in d.getVar('BBFILE_COLLECTIONS').split() else ''}"
+
+COMMON_INSTALL:append:zynqmp = " ${INSTALL_ZYNQ_ZYNQMP_VERSAL} hellopm ${LIBDFX_RECIPE}"
+COMMON_INSTALL:append:zynq = " ${INSTALL_ZYNQ_ZYNQMP_VERSAL}"
+COMMON_INSTALL:append:versal = " ${INSTALL_ZYNQ_ZYNQMP_VERSAL} ${LIBDFX_RECIPE}"
+
+INSTALL_ZYNQ_ZYNQMP_VERSAL = " haveged htop iperf3 meson u-boot-tools"
+
+CORE_IMAGE_EXTRA_INSTALL:append:ultra96 = " packagegroup-base-extended"
 
 IMAGE_LINGUAS = " "
 
@@ -86,12 +100,8 @@ FEATURE_PACKAGES_petalinux-96boards-sensors ?= "packagegroup-petalinux-96boards-
 FEATURE_PACKAGES_petalinux-96boards-sensors[optional] ?= "1"
 FEATURE_PACKAGES_fpga-manager ?= "fpga-manager-script fpga-manager-util"
 FEATURE_PACKAGES_fpga-manager[optional] ?= "1"
-FEATURE_PACKAGES_petalinux-syscontroller ?= "packagegroup-petalinux-syscontroller"
-FEATURE_PACKAGES_petalinux-syscontroller[optional] ?= "1"
 FEATURE_PACKAGES_petalinux-jupyter ?= "packagegroup-petalinux-jupyter"
 FEATURE_PACKAGES_petalinux-jupyter[optional] ?= "1"
-FEATURE_PACKAGES_petalinux-xrt ?= "packagegroup-petalinux-xrt"
-FEATURE_PACKAGES_petalinux-xrt[optional] ?= "1"
 FEATURE_PACKAGES_petalinux-pynq-bnn ?= "packagegroup-petalinux-pynq-bnn"
 FEATURE_PACKAGES_petalinux-pynq-bnn[optional] ?= "1"
 FEATURE_PACKAGES_petalinux-pynq-96boardsoverlay ?= "packagegroup-petalinux-pynq-96boardsoverlay"
@@ -100,19 +110,10 @@ FEATURE_PACKAGES_petalinux-pynq ?= "packagegroup-petalinux-pynq"
 FEATURE_PACKAGES_petalinux-pynq[optional] ?= "1"
 FEATURE_PACKAGES_petalinux-pynq-helloworld ?= "packagegroup-petalinux-pynq-helloworld"
 FEATURE_PACKAGES_petalinux-pynq-helloworld[optional] ?= "1"
-FEATURE_PACKAGES_petalinux-scweb ?= "packagegroup-petalinux-scweb"
-FEATURE_PACKAGES_petalinux-scweb[optional] ?= "1"
-FEATURE_PACKAGES_petalinux-syscontroller-app?= "packagegroup-petalinux-syscontroller-app"
-FEATURE_PACKAGES_petalinux-syscontroller-app[optional] ?= "1"
 
-# Vitis AI is only built for zynqmp at this time, but allow
-# the FEATURE_PACKAGES to not error on no zynqmp systems
-VITISAI_PKGS = ""
-VITISAI_PKGS_zynqmp = "packagegroup-petalinux-vitisai"
-FEATURE_PACKAGES_petalinux-vitisai ?= "${VITISAI_PKGS}"
-FEATURE_PACKAGES_petalinux-vitisai[optional] ?= "1"
-
-FEATURE_PACKAGES_petalinux-updateboot ?= "packagegroup-petalinux-updateboot"
-FEATURE_PACKAGES_petalinux-updateboot[optional] ?= "1"
 FEATURE_PACKAGES_petalinux-ocicontainers ?= "packagegroup-petalinux-ocicontainers"
 FEATURE_PACKAGES_petalinux-ocicontainers[optional] ?= "1"
+FEATURE_PACKAGES_petalinux-tpm ?= "packagegroup-petalinux-tpm"
+FEATURE_PACKAGES_petalinux-tpm[optional] ?= "1"
+FEATURE_PACKAGES_petalinux-ros ?= "packagegroup-petalinux-ros"
+FEATURE_PACKAGES_petalinux-ros[optional] ?= "1"
