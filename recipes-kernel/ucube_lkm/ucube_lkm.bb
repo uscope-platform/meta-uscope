@@ -12,4 +12,4 @@ SRC_URI = "file://Makefile \
 
 S = "${WORKDIR}"
 
-RPROVIDES_${PN} += "kernel-module-ucube_lkm"
+RPROVIDES:${PN} += "ucube_lkm"
