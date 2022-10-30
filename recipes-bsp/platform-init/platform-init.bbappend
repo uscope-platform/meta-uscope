@@ -1,5 +1,5 @@
 
-COMPATIBLE_MACHINE_microzed-zynq7 = "microzed-zynq7"
+COMPATIBLE_MACHINE:microzed-zynq7 = "microzed-zynq7"
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 do_install:append() {
